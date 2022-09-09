@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>Label</key>
+        <string>com.kritjo.fastmsg</string>
+
+        <key>ProgramArguments</key>
+        <array>
+                <string>/Users/kritjo/IdeaProjects/fastmsg/target/release/fastmsg-agent</string>
+        </array>
+
+        <key>KeepAlive</key>
+        <true/>
+
+        <key>RunAtLoad</key>
+        <true/>
+
+        <key>Nice</key>
+        <integer>1</integer>
+
+        <key>StandardErrorPath</key>
+        <string>/tmp/com.kritjo.fastmsg.err</string>
+
+        <key>StandardOutPath</key>
+        <string>/tmp/com.kritjo.fastmsg.out</string>
+</dict>
+</plist>
