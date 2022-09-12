@@ -10,6 +10,7 @@ use openssl::hash::MessageDigest;
 use crate::config_utils::KeyType;
 use std::time::Duration;
 use tokio::{task, time};
+use tokio::process::{Command};
 
 # [tokio::main]
 async fn main() {
@@ -85,7 +86,13 @@ async fn main() {
                         .expect("Unable to receive response from server");
                     let msg = String::from_utf8(msg_buf)
                         .expect("Unable to convert message to string");
-                    println!("{}", msg);
+                    Command::new("./notification-helper/build/Release/notification-helper")
+                        .arg("-title")
+                        .arg("fastmsg")
+                        .arg("-informativeText")
+                        .arg(&msg)
+                        .kill_on_drop(false) // This is default, but I like to be explicit
+                        .spawn().expect("Unable to spawn notification-helper");
             }
         }
     });
