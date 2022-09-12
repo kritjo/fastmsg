@@ -8,8 +8,11 @@ use openssl::pkey::PKey;
 use openssl::rsa::Rsa;
 use openssl::hash::MessageDigest;
 use crate::config_utils::KeyType;
+use std::time::Duration;
+use tokio::{task, time};
 
-fn main() {
+# [tokio::main]
+async fn main() {
     // Read server address from .conf file
     let (server_url, username, priv_keyfile, keytype) =
         config_utils::get_config()
@@ -22,8 +25,12 @@ fn main() {
     let mut stream = TcpStream::connect(server_url)
         .expect("Unable to connect to server");
 
+    // Write hello message
+    let mut hello = String::from("AGENT HELLO ");
+    hello.push_str(&username);
+
     // Do handshake step 1: Send username
-    stream.write(username.as_bytes())
+    stream.write(hello.as_bytes())
         .expect("Unable to send username to server");
 
     // Do handshake step 2: Receive challenge which is a 32-byte random string
@@ -46,6 +53,43 @@ fn main() {
     } else {
         panic!("Handshake failed");
     }
+
+    let main_loop = task::spawn(async move {
+        let mut interval = time::interval(Duration::from_secs(1));
+
+        loop {
+            interval.tick().await;
+            stream.write(b"POLL")
+                .expect("Unable to send NEW message to server");
+            let mut response = [0; 1];
+            stream.read(&mut response)
+                .expect("Unable to receive response from server");
+            if response == [0] {
+                continue;
+            }
+            let mut buf = [0; 4];
+            stream.read(&mut buf)
+                .expect("Unable to receive response from server");
+            for _ in 0..((buf[0] as u32) << 24) +
+                ((buf[1] as u32) << 16) +
+                ((buf[2] as u32) <<  8) +
+                ((buf[3] as u32) <<  0) {
+                    buf = [0; 4];
+                    stream.read(&mut buf)
+                        .expect("Unable to receive response from server");
+                    let mut msg_buf = vec![0; (((buf[0] as u32) << 24) +
+                        ((buf[1] as u32) << 16) +
+                        ((buf[2] as u32) << 8) +
+                        ((buf[3] as u32) << 0)) as usize];
+                    stream.read_exact(&mut msg_buf)
+                        .expect("Unable to receive response from server");
+                    let msg = String::from_utf8(msg_buf)
+                        .expect("Unable to convert message to string");
+                    println!("{}", msg);
+            }
+        }
+    });
+    main_loop.await.unwrap();
 }
 
 fn sign_challenge(challenge: &[u8; 32], keyfile: &String, keytype: &KeyType) -> Vec<u8> {
