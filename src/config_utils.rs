@@ -1,5 +1,4 @@
 use std::fs;
-use aes::cipher::Key;
 use openssl::rsa::Rsa;
 
 pub enum KeyType {
