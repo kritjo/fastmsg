@@ -8,7 +8,7 @@ pub enum KeyType {
 }
 
 pub fn get_config() -> Result<(String, String, String, KeyType), i32> {
-    let conf = match fs::read_to_string(".conf1") {
+    let conf = match fs::read_to_string(".conf") {
         Ok(conf) => conf,
         Err(_) => return Err(1),
     };
@@ -136,7 +136,7 @@ pub fn create_valid_config() -> (String, String, String, KeyType) {
     ] {
        config.push_str(&format!("{} = {}\n", key, value));
     }
-    fs::write(".conf1", config)
+    fs::write(".conf", config)
         .expect("Unable to write config file");
     return (server_url, username, "".to_string(), keytype);
 }
