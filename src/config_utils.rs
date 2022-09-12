@@ -8,8 +8,10 @@ pub enum KeyType {
 }
 
 pub fn get_config() -> Result<(String, String, String, KeyType), i32> {
-    let conf = fs::read_to_string(".conf")
-        .expect("Unable to read .conf");
+    let conf = match fs::read_to_string(".conf1") {
+        Ok(conf) => conf,
+        Err(_) => return Err(1),
+    };
     let mut server_url = String::new();
     let mut username = String::new();
     let mut priv_keyfile = String::new();
@@ -123,16 +125,16 @@ pub fn create_valid_config() -> (String, String, String, KeyType) {
     // Write config file
     let mut config = String::new();
     for (key, value) in vec![
-        ("server_url", server_url.clone()),
-        ("username", username.clone()),
-        ("priv_keyfile", priv_keyfile.clone()),
-        ("pub_keyfile", pub_keyfile.clone()),
-        ("keytype", match keytype {
+        ("SERVER_URL", server_url.clone()),
+        ("USERNAME", username.clone()),
+        ("PRIV_KEYFILE", priv_keyfile.clone()),
+        ("PUB_KEYFILE", pub_keyfile.clone()),
+        ("KEYTYPE", match keytype {
             KeyType::RSA => "RSA".to_string(),
             _ => panic!("Invalid key type"),
         }),
     ] {
-       config.push_str(&format!("{}={}", key, value));
+       config.push_str(&format!("{} = {}\n", key, value));
     }
     fs::write(".conf1", config)
         .expect("Unable to write config file");
